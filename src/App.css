@@ -1,38 +1,35 @@
-.App {
-  text-align: center;
+body {
+  font-family: "Trebuchet MS",
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.428571429;
+  color: #5B5C65;
+  background-color: #0a8d51;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+h2 {
+  color: #5B5C65;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.principal {
+  background-color: #0a8d51;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.mainContent {
+  width: 450px;
+  background-color: #ffffff;
+  padding: 30px 10px;
+  margin: 50px;
+  border: 1px solid transparent;
 }
 
-.App-link {
-  color: #61dafb;
+.mainContent .formBusca {
+  width: 80%;
+  position: relative;
+  margin-top: 30px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.dadosBenef div.ant-row {
+  margin: 15px 0;
 }
