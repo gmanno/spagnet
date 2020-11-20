@@ -4,15 +4,18 @@ import Consulta from "./componentes/Consulta";
 import { Layout } from "antd";
 import "antd/dist/antd.css";
 import "./App.css";
+import { Route, BrowserRouter } from "react-router-dom";
 
-function App() {
+const App = () => {
   return (
     <AppContainer>
       <Layout className="principal">
-        <Consulta />
+        <BrowserRouter>
+          <Route exact path="/teleconsulta/:jwt" component={Consulta} />
+        </BrowserRouter>
       </Layout>
     </AppContainer>
   );
-}
+};
 
 export default App;

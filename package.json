@@ -1,6 +1,6 @@
 {
   "name": "spagnet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
@@ -9,10 +9,13 @@
     "antd": "^4.6.5",
     "axios": "^0.20.0",
     "md5": "^2.3.0",
+    "moment": "^2.29.1",
     "react": "^16.13.1",
+    "react-credit-cards": "^0.8.3",
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.13.0",
     "react-recaptcha-v3": "^2.0.1",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",
     "web-vitals": "^1.0.1"
   },
