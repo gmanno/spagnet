@@ -180,6 +180,8 @@ function Consulta(props) {
             >
               <Input
                 placeholder="Cartão"
+                autocompletetype="cc-number"
+                autocomplete="cc-number"
                 style={{ width: "200px" }}
                 maxLength="19"
                 onChange={changeInput}
@@ -240,6 +242,7 @@ function Consulta(props) {
                 <Input
                   onChange={changeInput}
                   onBlur={handleBlur}
+                  autocomplete="cc-csc"
                   style={{ width: "60px" }}
                   maxLength="3"
                 />
