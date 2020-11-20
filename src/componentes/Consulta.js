@@ -4,7 +4,9 @@ import { cartaoMask } from "../util/cartao";
 import axios from "../util/Api";
 import { recaptchaToken, appName } from "../util/config";
 import { loadReCaptcha, ReCaptcha } from "react-recaptcha-v3";
-import moment from 'moment';
+import Cards from "react-credit-cards";
+import moment from "moment";
+import "react-credit-cards/es/styles-compiled.css";
 
 const FormItem = Form.Item;
 
@@ -12,6 +14,14 @@ function Consulta(props) {
   const [loader, setLoader] = useState(false);
   const [dados, setDados] = useState(null);
   const [captchaValidado, setCaptchaValidado] = useState(false);
+  const [card, setCard] = useState({
+    expiry: "",
+    focus: "",
+    name: "",
+    number: "",
+    cvc: "",
+    valid: false,
+  });
   const [form] = Form.useForm();
 
   const verifyCallback = (recaptchaToken) => {
@@ -44,9 +54,38 @@ function Consulta(props) {
     });
   };
 
-  const changeCartao = (e) => {
-    let valor = cartaoMask(e.target.value);
-    form.setFieldsValue({ cartao: cartaoMask(valor) });
+  const handleCard = (dados, valid) => {
+    console.log(dados);
+    console.log(valid);
+    setCard({ ...card, valid: valid });
+  };
+  const handleBlur = () => {
+    setCard({ ...card, focus: "" });
+  };
+  const changeInput = (e) => {
+    const { id, value } = e.target;
+    setCard({ ...card, [id]: value, focus: id });
+    switch (id) {
+      case "number":
+        form.setFieldsValue({ [id]: cartaoMask(value) });
+        break;
+      case "expiry":
+        form.setFieldsValue({
+          [id]: value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1/$2"),
+        });
+        break;
+      default:
+        break;
+    }
+  };
+  const checkValidade = (valor) => {
+    if (valor.length === 5) {
+      let hoje = moment();
+      let data = moment(valor, "MM/YY");
+      
+      return data.isValid() && data > hoje;
+    }
+    return false;
   };
   const getConsultaData = useCallback(() => {
     axios
@@ -74,7 +113,6 @@ function Consulta(props) {
   }, [getConsultaData]);
 
   const carregaBenef = () => {
-    
     return (
       <div className="dadosBenef">
         <Row>
@@ -101,18 +139,42 @@ function Consulta(props) {
           <Col span={24}>
             <b>Horário da consulta:</b>
           </Col>
-          <Col span={20}>{moment(dados.agm_hini, "YYYY-MM-DD H:mm:ss").format("DD/MM/YYYY H:mm")}</Col>
+          <Col span={20}>
+            {moment(dados.agm_hini, "YYYY-MM-DD H:mm:ss").format(
+              "DD/MM/YYYY H:mm"
+            )}
+          </Col>
         </Row>
-
+        <Row>
+          <Cards
+            cvc={card.cvc}
+            expiry={card.expiry}
+            focused={card.focus}
+            name={card.name}
+            number={card.number}
+            callback={handleCard}
+            locale={{
+              valid: "válido até",
+            }}
+            placeholders={{
+              name: "SEU NOME AQUI",
+            }}
+          />
+        </Row>
         <Form form={form} onFinish={onFinish}>
           <Row>
             <FormItem
-              name="cartao"
+              name="number"
               rules={[
                 {
+                  validator: () =>
+                    card.valid
+                      ? Promise.resolve()
+                      : Promise.reject("Cartão inválido"),
+                },
+                {
                   required: true,
-                  min: 19,
-                  message: "Cartão inválido",
+                  message: "Número do cartão obrigatório",
                 },
               ]}
             >
@@ -120,13 +182,13 @@ function Consulta(props) {
                 placeholder="Cartão"
                 style={{ width: "200px" }}
                 maxLength="19"
-                onChange={changeCartao}
+                onChange={changeInput}
               />
             </FormItem>
           </Row>
           <Row>
             <FormItem
-              name="nome"
+              name="name"
               rules={[
                 {
                   required: true,
@@ -136,60 +198,53 @@ function Consulta(props) {
             >
               <Input
                 placeholder="Nome no cartão"
+                onChange={changeInput}
                 style={{ width: "200px" }}
                 maxLength="100"
               />
             </FormItem>
           </Row>
           <Row>
-            <FormItem
-              name="mes"
-              rules={[
-                {
-                  required: true,
-                  message: "Mês",
-                },
-              ]}
-            >
-              <Input
-                placeholder="Mês"
-                style={{ width: "50px" }}
-                maxLength="2"
-              />
-              /
-            </FormItem>
-            <FormItem
-              name="ano"
-              rules={[
-                {
-                  required: true,
-                  message: "Ano",
-                },
-              ]}
-            >
-              <Input
-                placeholder="Ano"
-                style={{ width: "50px" }}
-                maxLength="2"
-              />
-            </FormItem>
-          </Row>
-          <Row>
-            <FormItem
-              name="cvv"
-              rules={[
-                {
-                  required: true,
-                  message: "Código de segurança",
-                },
-              ]}
-            >
-              <Input
-                placeholder="cvv"
-                style={{ width: "60px" }}
-                maxLength="3"
-              />
-            </FormItem>
+            <Col span={11}>
+              <FormItem
+                name="expiry"
+                rules={[
+                  {
+                    required: true,
+                    min: 5,
+                    validator: (_, value) =>
+                      checkValidade(value)
+                        ? Promise.resolve()
+                        : Promise.reject("Validade inválida"),
+                  },
+                ]}
+              >
+                <Input
+                  placeholder="MM/AA"
+                  onChange={changeInput}
+                  style={{ width: "100px" }}
+                  maxLength="5"
+                />
+              </FormItem>
+            </Col>
+            <Col span={6}>
+              <FormItem
+                name="cvc"
+                rules={[
+                  {
+                    required: true,
+                    message: "Código de segurança",
+                  },
+                ]}
+              >
+                <Input
+                  onChange={changeInput}
+                  onBlur={handleBlur}
+                  style={{ width: "60px" }}
+                  maxLength="3"
+                />
+              </FormItem>
+            </Col>
           </Row>
           <div>
             <ReCaptcha
