@@ -2,13 +2,15 @@ import axios from "axios";
 import { urlApi, appName } from "./config";
 import md5 from "md5";
 
+console.log(process.env.REACT_APP_TOKEN_SECRET);
+
 const hoje = new Date()
   .toLocaleDateString()
   .slice(0, 10)
   .replace(/(\D)/g, "")
   .replace(/([0-9]{2})([0-9]{2})([0-9]{4})/g, "$3-$2-$1");
 
-const result = md5("un1m3ds1s" + hoje);
+const result = md5(process.env.REACT_APP_TOKEN_SECRET + hoje);
 
 const instance = axios.create({
   baseURL: urlApi + "consultas",

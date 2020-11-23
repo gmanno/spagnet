@@ -1,5 +1,5 @@
 module.exports = {
-  recaptchaToken: "6LcXz-QZAAAAAKr0k6oJsbAqTOCyLU4zY9jLv-4m",
+  recaptchaToken: process.env.REACT_APP_RECAPTCHATOKEN,
   appName: "spagnet",
   urlApi:
     !process.env.NODE_ENV || process.env.NODE_ENV === "development"
