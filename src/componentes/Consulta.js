@@ -13,6 +13,7 @@ const FormItem = Form.Item;
 function Consulta(props) {
   const [loader, setLoader] = useState(false);
   const [dados, setDados] = useState(null);
+  const [msgContent, setMsgContent] = useState(null);
   const [captchaValidado, setCaptchaValidado] = useState(false);
   const [card, setCard] = useState({
     expiry: "",
@@ -97,6 +98,7 @@ function Consulta(props) {
           setDados(data.retorno);
         } else {
           setDados(null);
+          setMsgContent(<h3>{data.mensagem}</h3>)
 
           notification.error({
             message: "Alerta",
@@ -111,6 +113,10 @@ function Consulta(props) {
     getConsultaData();
     loadReCaptcha(recaptchaToken);
   }, [getConsultaData]);
+
+  const carregaMensagem = ()=>{
+    return <div className="dadosBenef">{msgContent}</div>;
+  }
 
   const carregaBenef = () => {
     return (
@@ -291,7 +297,7 @@ function Consulta(props) {
             style={{ width: "100%" }}
           >
             <Spin spinning={loader} tip="carregando...">
-              {dados === null ? "" : carregaBenef()}
+              {dados === null ? carregaMensagem() : carregaBenef()}
             </Spin>
           </Row>
         </div>
