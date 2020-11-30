@@ -9,6 +9,10 @@ import moment from "moment";
 import "react-credit-cards/es/styles-compiled.css";
 
 const FormItem = Form.Item;
+const money = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
 
 function Consulta(props) {
   const [loader, setLoader] = useState(false);
@@ -39,29 +43,47 @@ function Consulta(props) {
 
   const onFinish = (values) => {
     setLoader(true);
+    let jwt = props.match.params.jwt;
     form.validateFields().then((values) => {
-      axios.post("/teleconsulta/pagamento", values).then(({ data }) => {
-        if (data.ok === true) {
-        } else {
-          setDados(null);
-          form.setFieldsValue({ cartao: null, nome: null });
-          notification.error({
-            message: "Alerta",
-            description: data.mensagem,
-          });
-        }
-        setLoader(false);
-      });
+      axios
+        .post("/teleconsulta/pagamento", { ...values, jwt: jwt })
+        .then(({ data }) => {
+          if (data.pagamento_aprovado === true) {
+            setDados(null);
+            setMsgContent(<h3>{data.mensagem}</h3>);
+          } else {
+            form.setFieldsValue({
+              number: null,
+              name: null,
+              expiry: null,
+              cvc: null,
+            });
+            setCard({
+              expiry: "",
+              focus: "",
+              name: "",
+              number: "",
+              cvc: "",
+              valid: false,
+            });
+            notification.error({
+              message: "Alerta",
+              description: data.mensagem,
+            });
+          }
+          setLoader(false);
+        });
     });
   };
 
   const handleCard = (dados, valid) => {
-    console.log(dados);
-    console.log(valid);
     setCard({ ...card, valid: valid });
   };
   const handleBlur = () => {
     setCard({ ...card, focus: "" });
+  };
+  const handleFocus = () => {
+    setCard({ ...card, focus: "cvc" });
   };
   const changeInput = (e) => {
     const { id, value } = e.target;
@@ -80,10 +102,10 @@ function Consulta(props) {
     }
   };
   const checkValidade = (valor) => {
-    if (valor.length === 5) {
+    if (valor.length === 7) {
       let hoje = moment();
-      let data = moment(valor, "MM/YY");
-      
+      let data = moment(valor, "MM/YYYY");
+
       return data.isValid() && data > hoje;
     }
     return false;
@@ -95,10 +117,14 @@ function Consulta(props) {
       })
       .then(({ data }) => {
         if (data.ok === true) {
-          setDados(data.retorno);
+          if (data.retorno.pago) {
+            setMsgContent(<h3>Pagamento já confirmado</h3>);
+          } else {
+            setDados(data.retorno);
+          }
         } else {
           setDados(null);
-          setMsgContent(<h3>{data.mensagem}</h3>)
+          setMsgContent(<h3>{data.mensagem}</h3>);
 
           notification.error({
             message: "Alerta",
@@ -114,9 +140,9 @@ function Consulta(props) {
     loadReCaptcha(recaptchaToken);
   }, [getConsultaData]);
 
-  const carregaMensagem = ()=>{
+  const carregaMensagem = () => {
     return <div className="dadosBenef">{msgContent}</div>;
-  }
+  };
 
   const carregaBenef = () => {
     return (
@@ -131,7 +157,7 @@ function Consulta(props) {
           <Col span={6}>
             <b>Nome:</b>
           </Col>
-          <Col span={20}>{dados.agm_pac_nome}</Col>
+          <Col span={24}>{dados.agm_pac_nome}</Col>
         </Row>
         <Row>
           <Col span={6}>
@@ -150,6 +176,12 @@ function Consulta(props) {
               "DD/MM/YYYY H:mm"
             )}
           </Col>
+        </Row>
+        <Row>
+          <Col span={24}>
+            <b>Valor:</b>
+          </Col>
+          <Col span={20}>{money.format(dados.empresa.valor_franquia)}</Col>
         </Row>
         <Row>
           <Cards
@@ -188,7 +220,7 @@ function Consulta(props) {
                 placeholder="Cartão"
                 autocompletetype="cc-number"
                 autocomplete="cc-number"
-                style={{ width: "200px" }}
+                style={{ width: "210px" }}
                 maxLength="19"
                 onChange={changeInput}
               />
@@ -207,7 +239,7 @@ function Consulta(props) {
               <Input
                 placeholder="Nome no cartão"
                 onChange={changeInput}
-                style={{ width: "200px" }}
+                style={{ width: "210px" }}
                 maxLength="100"
               />
             </FormItem>
@@ -228,10 +260,10 @@ function Consulta(props) {
                 ]}
               >
                 <Input
-                  placeholder="MM/AA"
+                  placeholder="MM/AAAA"
                   onChange={changeInput}
-                  style={{ width: "100px" }}
-                  maxLength="5"
+                  style={{ width: "120px" }}
+                  maxLength="7"
                 />
               </FormItem>
             </Col>
@@ -247,6 +279,7 @@ function Consulta(props) {
               >
                 <Input
                   onChange={changeInput}
+                  onFocus={handleFocus}
                   onBlur={handleBlur}
                   autocomplete="cc-csc"
                   style={{ width: "60px" }}

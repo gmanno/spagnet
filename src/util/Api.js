@@ -2,7 +2,6 @@ import axios from "axios";
 import { urlApi, appName } from "./config";
 import md5 from "md5";
 
-console.log(process.env.REACT_APP_TOKEN_SECRET);
 
 const hoje = new Date()
   .toLocaleDateString()
