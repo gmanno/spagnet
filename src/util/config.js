@@ -3,3 +3,5 @@ module.exports = {
   appName: process.env.REACT_APP_NAME,
   urlApi: process.env.REACT_APP_API_URL,
 };
+
+console.log(process.env);
