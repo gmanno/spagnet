@@ -6,7 +6,7 @@ deploy_staging:
   script:
     - rsync -avuz -e 'ssh -i ~/.ssh/id_rsa' /home/gitlab-runner/builds/YCsXq9mJ/0/devunimednatal/spagnet/* /docker/projetos/spagnet
     - "cd /docker/projetos/spagnet/"
-    - printf "REACT_APP_RECAPTCHATOKEN=$REACT_APP_RECAPTCHATOKEN\nREACT_APP_API_URL=$REACT_APP_API_URL\nREACT_APP_COD=$REACT_APP_COD" > .env
+    - printf "REACT_APP_TOKEN_SECRET=$REACT_APP_TOKEN_SECRET\nREACT_APP_RECAPTCHATOKEN=$REACT_APP_RECAPTCHATOKEN\nREACT_APP_API_URL=$REACT_APP_API_URL\n" > .env
     - "docker-compose down && docker-compose up --build -d"
   only:
     - main
