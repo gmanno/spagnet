@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Row, Col, Form, Input, Button, Spin, notification } from "antd";
+import { Row, Col, Form, Input, Button, Spin, Radio, notification } from "antd";
 import { cartaoMask } from "../util/cartao";
 import axios from "../util/Api";
 import { recaptchaToken, appName } from "../util/config";
@@ -13,16 +13,20 @@ const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
+const RadioButton = Radio.Button;
+const RadioGroup = Radio.Group;
 
 function Consulta(props) {
   const [loader, setLoader] = useState(false);
   const [dados, setDados] = useState(null);
   const [msgContent, setMsgContent] = useState(null);
   const [captchaValidado, setCaptchaValidado] = useState(false);
+  const [type, setType] = useState("credit");
   const [card, setCard] = useState({
     expiry: "",
     focus: "",
     name: "",
+    issuer: "",
     number: "",
     cvc: "",
     valid: false,
@@ -46,7 +50,7 @@ function Consulta(props) {
     let jwt = props.match.params.jwt;
     form.validateFields().then((values) => {
       axios
-        .post("/teleconsulta/pagamento", { ...values, jwt: jwt })
+        .post("/teleconsulta/pagamento", { ...values, issuer: card.issuer, type: type, jwt: jwt })
         .then(({ data }) => {
           if (data.pagamento_aprovado === true) {
             setDados(null);
@@ -62,6 +66,7 @@ function Consulta(props) {
               expiry: "",
               focus: "",
               name: "",
+              issuer: "",
               number: "",
               cvc: "",
               valid: false,
@@ -77,7 +82,7 @@ function Consulta(props) {
   };
 
   const handleCard = (dados, valid) => {
-    setCard({ ...card, valid: valid });
+    setCard({ ...card, valid: valid, issuer: dados.issuer });
   };
   const handleBlur = () => {
     setCard({ ...card, focus: "" });
@@ -85,7 +90,11 @@ function Consulta(props) {
   const handleFocus = () => {
     setCard({ ...card, focus: "cvc" });
   };
+  const changeType = (e) => {
+    setType(e.target.value);
+  }
   const changeInput = (e) => {
+    
     const { id, value } = e.target;
     setCard({ ...card, [id]: value, focus: id });
     switch (id) {
@@ -190,6 +199,7 @@ function Consulta(props) {
             focused={card.focus}
             name={card.name}
             number={card.number}
+            acceptedCards={['visa','mastercard','hipercard','discover']}
             callback={handleCard}
             locale={{
               valid: "válido até",
@@ -200,6 +210,16 @@ function Consulta(props) {
           />
         </Row>
         <Form form={form} onFinish={onFinish}>
+          <Row>
+            <RadioGroup
+              onChange={changeType}
+              defaultValue="credit"
+              size="small"
+            >
+              <RadioButton value="credit">Crédito</RadioButton>
+              <RadioButton value="debit">Débito</RadioButton>
+            </RadioGroup>
+          </Row>
           <Row>
             <FormItem
               name="number"
@@ -219,7 +239,7 @@ function Consulta(props) {
               <Input
                 placeholder="Cartão"
                 autocompletetype="cc-number"
-                autocomplete="cc-number"
+                autoComplete="cc-number"
                 style={{ width: "210px" }}
                 maxLength="19"
                 onChange={changeInput}
@@ -281,7 +301,7 @@ function Consulta(props) {
                   onChange={changeInput}
                   onFocus={handleFocus}
                   onBlur={handleBlur}
-                  autocomplete="cc-csc"
+                  autoComplete="cc-csc"
                   style={{ width: "60px" }}
                   maxLength="3"
                 />
