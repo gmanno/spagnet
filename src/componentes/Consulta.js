@@ -50,7 +50,12 @@ function Consulta(props) {
     let jwt = props.match.params.jwt;
     form.validateFields().then((values) => {
       axios
-        .post("/teleconsulta/pagamento", { ...values, issuer: card.issuer, type: type, jwt: jwt })
+        .post("/teleconsulta/pagamento", {
+          ...values,
+          issuer: card.issuer,
+          type: type,
+          jwt: jwt,
+        })
         .then(({ data }) => {
           if (data.pagamento_aprovado === true) {
             setDados(null);
@@ -92,9 +97,8 @@ function Consulta(props) {
   };
   const changeType = (e) => {
     setType(e.target.value);
-  }
+  };
   const changeInput = (e) => {
-    
     const { id, value } = e.target;
     setCard({ ...card, [id]: value, focus: id });
     switch (id) {
@@ -199,7 +203,7 @@ function Consulta(props) {
             focused={card.focus}
             name={card.name}
             number={card.number}
-            acceptedCards={['visa','mastercard','hipercard','discover']}
+            acceptedCards={["visa", "mastercard", "hipercard", "discover"]}
             callback={handleCard}
             locale={{
               valid: "válido até",
