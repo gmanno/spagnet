@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Row, Col, Form, Input, Button, Spin, Radio, notification } from "antd";
+import {
+  Row,
+  Col,
+  Form,
+  Input,
+  Button,
+  Spin,
+  Select,
+  notification,
+} from "antd";
 import { cartaoMask } from "../util/cartao";
 import axios from "../util/Api";
 import { recaptchaToken, appName } from "../util/config";
@@ -7,21 +16,21 @@ import { loadReCaptcha, ReCaptcha } from "react-recaptcha-v3";
 import Cards from "react-credit-cards";
 import moment from "moment";
 import "react-credit-cards/es/styles-compiled.css";
+const Option = Select.Option;
 
 const FormItem = Form.Item;
 const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
-const RadioButton = Radio.Button;
-const RadioGroup = Radio.Group;
 
 function Consulta(props) {
   const [loader, setLoader] = useState(false);
+  const [optsParcelas, setOptsParcelas] = useState(null);
   const [dados, setDados] = useState(null);
   const [msgContent, setMsgContent] = useState(null);
   const [captchaValidado, setCaptchaValidado] = useState(false);
-  const [type, setType] = useState("credit");
+  const type = "credit";
   const [card, setCard] = useState({
     expiry: "",
     focus: "",
@@ -50,7 +59,7 @@ function Consulta(props) {
     let jwt = props.match.params.jwt;
     form.validateFields().then((values) => {
       axios
-        .post("/teleconsulta/pagamento", {
+        .post("/beneficiarios/pagar_carnets", {
           ...values,
           issuer: card.issuer,
           type: type,
@@ -59,9 +68,9 @@ function Consulta(props) {
         .then(({ data }) => {
           if (data.pagamento_aprovado === true) {
             setDados(null);
-            if (type==='credit'){
-              setMsgContent(<h3>{data.mensagem}</h3>)
-            }else{
+            if (type === "credit") {
+              setMsgContent(<h3>{data.mensagem}</h3>);
+            } else {
               window.location = data.auth_url;
             }
           } else {
@@ -99,9 +108,7 @@ function Consulta(props) {
   const handleFocus = () => {
     setCard({ ...card, focus: "cvc" });
   };
-  const changeType = (e) => {
-    setType(e.target.value);
-  };
+
   const changeInput = (e) => {
     const { id, value } = e.target;
     setCard({ ...card, [id]: value, focus: id });
@@ -129,15 +136,21 @@ function Consulta(props) {
   };
   const getConsultaData = useCallback(() => {
     axios
-      .post("/teleconsulta/info", {
+      .post("/beneficiarios/carnets_atrasados", {
         token: props.match.params.jwt,
       })
       .then(({ data }) => {
         if (data.ok === true) {
-          if (data.retorno.pago) {
-            setMsgContent(<h3>Pagamento já confirmado</h3>);
+          if (data.carnets.length === 0) {
+            setMsgContent(<h3>Nenhum carnet em atraso encontrado.</h3>);
           } else {
-            setDados(data.retorno);
+            let opts = []
+            for (let p = 1; p <= data.max_parcelas; p++) {
+              opts.push(<Option value={p}>{p}</Option>);
+            }
+
+            setOptsParcelas(opts);
+            setDados(data);
           }
         } else {
           setDados(null);
@@ -166,39 +179,48 @@ function Consulta(props) {
       <div className="dadosBenef">
         <Row>
           <Col span={24}>
-            Digite os dados do cartão para fazer<br></br>o pagamento da franquia
-            da tele-consulta.
+            Digite os dados do cartão de crédito para fazer<br></br>o pagamento
+            dos carnets.
           </Col>
         </Row>
         <Row>
           <Col span={6}>
             <b>Nome:</b>
           </Col>
-          <Col span={24}>{dados.agm_pac_nome}</Col>
+          <Col span={24}>{dados.beneficiario.nome_beneficiario}</Col>
         </Row>
         <Row>
           <Col span={6}>
-            <b>Carteira:</b>
+            <b>CPF:</b>
           </Col>
           <Col span={20}>
-            {dados.pac_mcnv!=null ?  dados.pac_mcnv.replace(/(\d{3})(\d{12})(\d{1})/, "$1 $2 $3") : ''}
-          </Col>
-        </Row>
-        <Row>
-          <Col span={24}>
-            <b>Horário da consulta:</b>
-          </Col>
-          <Col span={20}>
-            {moment(dados.agm_hini, "YYYY-MM-DD H:mm:ss").format(
-              "DD/MM/YYYY H:mm"
+            {(dados.beneficiario.cpf + "").replace(
+              /(\d{3})(\d{3})(\d{3})(\d{1})/,
+              "$1.$2.$3-$4"
             )}
           </Col>
         </Row>
+
         <Row>
           <Col span={24}>
-            <b>Valor:</b>
+            Carnets:
+            <ul>
+              {dados.carnets.map((carnet) => (
+                <li>
+                  {money.format(carnet.valor_total)} -{" "}
+                  {moment(carnet.data_vencimento, "YYYY-MM-DD").format(
+                    "DD/MM/YYYY"
+                  )}
+                </li>
+              ))}{" "}
+            </ul>
           </Col>
-          <Col span={20}>{money.format(dados.empresa.valor_franquia)}</Col>
+        </Row>
+        <Row>
+          <Col span={24}>
+            <b>Valor Total:</b>
+          </Col>
+          <Col span={20}>{money.format(dados.valor_total)}</Col>
         </Row>
         <Row>
           <Cards
@@ -219,14 +241,19 @@ function Consulta(props) {
         </Row>
         <Form form={form} onFinish={onFinish}>
           <Row>
-            <RadioGroup
-              onChange={changeType}
-              defaultValue="credit"
-              size="small"
+            <FormItem
+              name="parcelas"
+              rules={[
+                {
+                  required: true,
+                  message: "Número de parcelas",
+                },
+              ]}
             >
-              <RadioButton value="credit">Crédito</RadioButton>
-              <RadioButton value="debit">Débito</RadioButton>
-            </RadioGroup>
+              <Select placeholder="Número de parcelas">
+                {optsParcelas}
+              </Select>
+            </FormItem>
           </Row>
           <Row>
             <FormItem
