@@ -176,14 +176,16 @@ function Consulta(props) {
           </Col>
           <Col span={24}>{dados.agm_pac_nome}</Col>
         </Row>
-        <Row>
+        {dados.pac_mcnv!=null ?
+        (<Row>
           <Col span={6}>
             <b>Carteira:</b>
           </Col>
           <Col span={20}>
-            {dados.pac_mcnv!=null ?  dados.pac_mcnv.replace(/(\d{3})(\d{12})(\d{1})/, "$1 $2 $3") : ''}
+            {dados.pac_mcnv.replace(/(\d{3})(\d{12})(\d{1})/, "$1 $2 $3")}
           </Col>
-        </Row>
+        </Row>) : ''
+        }
         <Row>
           <Col span={24}>
             <b>Horário da consulta:</b>
