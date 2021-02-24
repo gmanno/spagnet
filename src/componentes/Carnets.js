@@ -194,7 +194,7 @@ function Consulta(props) {
             <b>CPF:</b>
           </Col>
           <Col span={20}>
-            {(dados.beneficiario.cpf + "").replace(
+            {(dados.beneficiario.cpf + "").padStart(11, '0').replace(
               /(\d{3})(\d{3})(\d{3})(\d{1})/,
               "$1.$2.$3-$4"
             )}
