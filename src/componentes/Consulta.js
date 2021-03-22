@@ -59,9 +59,9 @@ function Consulta(props) {
         .then(({ data }) => {
           if (data.pagamento_aprovado === true) {
             setDados(null);
-            if (type==='credit'){
-              setMsgContent(<h3>{data.mensagem}</h3>)
-            }else{
+            if (type === "credit") {
+              setMsgContent(<h3>{data.mensagem}</h3>);
+            } else {
               window.location = data.auth_url;
             }
           } else {
@@ -176,16 +176,18 @@ function Consulta(props) {
           </Col>
           <Col span={24}>{dados.agm_pac_nome}</Col>
         </Row>
-        {dados.pac_mcnv!=null ?
-        (<Row>
-          <Col span={6}>
-            <b>Carteira:</b>
-          </Col>
-          <Col span={20}>
-            {dados.pac_mcnv.replace(/(\d{3})(\d{12})(\d{1})/, "$1 $2 $3")}
-          </Col>
-        </Row>) : ''
-        }
+        {dados.pac_mcnv != null ? (
+          <Row>
+            <Col span={6}>
+              <b>Carteira:</b>
+            </Col>
+            <Col span={20}>
+              {dados.pac_mcnv.replace(/(\d{3})(\d{12})(\d{1})/, "$1 $2 $3")}
+            </Col>
+          </Row>
+        ) : (
+          ""
+        )}
         <Row>
           <Col span={24}>
             <b>Horário da consulta:</b>
@@ -209,7 +211,13 @@ function Consulta(props) {
             focused={card.focus}
             name={card.name}
             number={card.number}
-            acceptedCards={["visa", "mastercard", "hipercard", "discover"]}
+            acceptedCards={[
+              "visa",
+              "mastercard",
+              "hipercard",
+              "discover",
+              "elo",
+            ]}
             callback={handleCard}
             locale={{
               valid: "válido até",
@@ -220,7 +228,7 @@ function Consulta(props) {
           />
         </Row>
         <Form form={form} onFinish={onFinish}>
-          <Row>
+          {/* <Row>
             <RadioGroup
               onChange={changeType}
               defaultValue="credit"
@@ -229,7 +237,7 @@ function Consulta(props) {
               <RadioButton value="credit">Crédito</RadioButton>
               <RadioButton value="debit">Débito</RadioButton>
             </RadioGroup>
-          </Row>
+          </Row> */}
           <Row>
             <FormItem
               name="number"

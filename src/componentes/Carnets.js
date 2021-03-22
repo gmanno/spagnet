@@ -144,7 +144,7 @@ function Consulta(props) {
           if (data.carnets.length === 0) {
             setMsgContent(<h3>Nenhum carnet em atraso encontrado.</h3>);
           } else {
-            let opts = []
+            let opts = [];
             for (let p = 1; p <= data.max_parcelas; p++) {
               opts.push(<Option value={p}>{p}</Option>);
             }
@@ -194,10 +194,9 @@ function Consulta(props) {
             <b>CPF:</b>
           </Col>
           <Col span={20}>
-            {(dados.beneficiario.cpf + "").padStart(11, '0').replace(
-              /(\d{3})(\d{3})(\d{3})(\d{1})/,
-              "$1.$2.$3-$4"
-            )}
+            {(dados.beneficiario.cpf + "")
+              .padStart(11, "0")
+              .replace(/(\d{3})(\d{3})(\d{3})(\d{1})/, "$1.$2.$3-$4")}
           </Col>
         </Row>
 
@@ -229,7 +228,13 @@ function Consulta(props) {
             focused={card.focus}
             name={card.name}
             number={card.number}
-            acceptedCards={["visa", "mastercard", "hipercard", "discover"]}
+            acceptedCards={[
+              "visa",
+              "mastercard",
+              "hipercard",
+              "discover",
+              "elo",
+            ]}
             callback={handleCard}
             locale={{
               valid: "válido até",
@@ -250,9 +255,7 @@ function Consulta(props) {
                 },
               ]}
             >
-              <Select placeholder="Número de parcelas">
-                {optsParcelas}
-              </Select>
+              <Select placeholder="Número de parcelas">{optsParcelas}</Select>
             </FormItem>
           </Row>
           <Row>
