@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Row, Col, Form, Input, Button, Spin, Radio, notification } from "antd";
 import { cartaoMask } from "../util/cartao";
 import axios from "../util/Api";
-import { recaptchaToken, appName } from "../util/config";
-import { loadReCaptcha, ReCaptcha } from "react-recaptcha-v3";
 import Cards from "react-credit-cards";
 import moment from "moment";
 import "react-credit-cards/es/styles-compiled.css";
@@ -20,7 +18,6 @@ function Consulta(props) {
   const [loader, setLoader] = useState(false);
   const [dados, setDados] = useState(null);
   const [msgContent, setMsgContent] = useState(null);
-  const [captchaValidado, setCaptchaValidado] = useState(false);
   const [type, setType] = useState("credit");
   const [card, setCard] = useState({
     expiry: "",
@@ -32,18 +29,6 @@ function Consulta(props) {
     valid: false,
   });
   const [form] = Form.useForm();
-
-  const verifyCallback = (recaptchaToken) => {
-    axios
-      .post("/recaptcha", { recaptchaToken: recaptchaToken })
-      .then(({ data }) => {
-        if (data.status === true) {
-          setCaptchaValidado(true);
-        } else {
-          setCaptchaValidado(false);
-        }
-      });
-  };
 
   const onFinish = (values) => {
     setLoader(true);
@@ -154,7 +139,6 @@ function Consulta(props) {
 
   useEffect(() => {
     getConsultaData();
-    loadReCaptcha(recaptchaToken);
   }, [getConsultaData]);
 
   const carregaMensagem = () => {
@@ -326,20 +310,13 @@ function Consulta(props) {
               </FormItem>
             </Col>
           </Row>
-          <div>
-            <ReCaptcha
-              sitekey={recaptchaToken}
-              action={appName + "_login"}
-              verifyCallback={verifyCallback}
-            />
-          </div>
 
           <FormItem>
             <Button
               type="alert"
               key="buttonSubmit"
               htmlType="submit"
-              disabled={loader || !captchaValidado}
+              disabled={loader}
             >
               Confirmar
             </Button>
