@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Row, Col, Form, Input, Button, Spin, Radio, notification } from "antd";
+import { Row, Col, Form, Input, Button, Spin, notification } from "antd";
 import { cartaoMask } from "../util/cartao";
 import axios from "../util/Api";
 import Cards from "react-credit-cards";
@@ -11,14 +11,12 @@ const money = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
-const RadioButton = Radio.Button;
-const RadioGroup = Radio.Group;
 
 function Consulta(props) {
   const [loader, setLoader] = useState(false);
   const [dados, setDados] = useState(null);
   const [msgContent, setMsgContent] = useState(null);
-  const [type, setType] = useState("credit");
+  const type = "credit";
   const [card, setCard] = useState({
     expiry: "",
     focus: "",
@@ -45,7 +43,27 @@ function Consulta(props) {
           if (data.pagamento_aprovado === true) {
             setDados(null);
             if (type === "credit") {
-              setMsgContent(<h3>{data.mensagem}</h3>);
+              setMsgContent(
+                <div className="dadosBenef">
+                  <h3>{data.mensagem}</h3>
+                  <Row>
+                    <Col span={6}>
+                      <b>Beneficiário:</b>
+                    </Col>
+                    <Col span={24}>{dados.agm_pac_nome}</Col>
+                  </Row>
+                  <Row>
+                    <Col span={24}>
+                      <b>Horário da consulta:</b>
+                    </Col>
+                    <Col span={20}>
+                      {moment(dados.agm_hini, "YYYY-MM-DD H:mm:ss").format(
+                        "DD/MM/YYYY H:mm"
+                      )}
+                    </Col>
+                  </Row>
+                </div>
+              );
             } else {
               window.location = data.auth_url;
             }
@@ -84,9 +102,7 @@ function Consulta(props) {
   const handleFocus = () => {
     setCard({ ...card, focus: "cvc" });
   };
-  const changeType = (e) => {
-    setType(e.target.value);
-  };
+
   const changeInput = (e) => {
     const { id, value } = e.target;
     setCard({ ...card, [id]: value, focus: id });
@@ -120,7 +136,27 @@ function Consulta(props) {
       .then(({ data }) => {
         if (data.ok === true) {
           if (data.retorno.pago) {
-            setMsgContent(<h3>Pagamento já confirmado</h3>);
+            setMsgContent(
+              <div className="dadosBenef">
+                <h3>Pagamento já confirmado</h3>
+                <Row>
+                  <Col span={6}>
+                    <b>Beneficiário:</b>
+                  </Col>
+                  <Col span={24}>{data.retorno.agm_pac_nome}</Col>
+                </Row>
+                <Row>
+                  <Col span={24}>
+                    <b>Horário da consulta:</b>
+                  </Col>
+                  <Col span={20}>
+                    {moment(data.retorno.agm_hini, "YYYY-MM-DD H:mm:ss").format(
+                      "DD/MM/YYYY H:mm"
+                    )}
+                  </Col>
+                </Row>
+              </div>
+            );
           } else {
             setDados(data.retorno);
           }
